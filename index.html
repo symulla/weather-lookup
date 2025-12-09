@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Weather Lookup</title>
+    <style>
+        body {
+            background: rgb(1, 51, 32);
+            min-height: 100vh;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        
+        .weather-app {
+            width: 400px;
+            padding: 30px;
+            border-radius: 20px;
+            background: white;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        
+        h2 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #333;
+        }
+        
+        .search-section {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        #cityInput {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+        
+        #searchBtn {
+            padding: 12px 25px;
+            background: #1e3ed0;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        
+        #searchBtn:hover {
+            background: #5a67d8;
+        }
+        
+        #loading {
+            text-align: center;
+            padding: 20px;
+            color: #667eea;
+        }
+        
+        #weatherResult {
+            background: #f8f9ff;
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 20px;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        #errorMsg {
+            background: #fed7d7;
+            color: #c53030;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+        
+        .weather-icon {
+            font-size: 50px;
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .temp-value {
+            font-size: 42px;
+            font-weight: bold;
+            color: #e53e3e;
+        }
+        
+        .wind-value {
+            font-size: 20px;
+            color: #3182ce;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="weather-app">
+        <h2>Weather Lookup</h2>
+        
+        <div class="search-section">
+            <input type="text" id="cityInput" placeholder="Enter city name" value="Nairobi">
+            <button onclick="searchWeather()" id="searchBtn">Search</button>
+        </div>
+        
+        <div id="loading" class="hidden">Loading...</div>
+        
+        <div id="weatherResult" class="hidden">
+            <h3 id="cityName"></h3>
+            <div class="weather-icon" id="weatherIcon">🌤️</div>
+            <p>Temperature: <span id="temp" class="temp-value"></span> °C</p>
+            <p>Wind Speed: <span id="wind" class="wind-value"></span> km/h</p>
+        </div>
+        
+        <div id="errorMsg" class="hidden"></div>
+    </div>
+
+    <script>
+        function searchWeather() {
+            const city = document.getElementById('cityInput').value.trim();
+            if (!city) return alert("Please enter a city name");
+            
+            document.getElementById('loading').classList.remove('hidden');
+            document.getElementById('weatherResult').classList.add('hidden');
+            document.getElementById('errorMsg').classList.add('hidden');
+            
+            fetch(`https://api.open-meteo.com/v1/forecast?latitude=-1.2864&longitude=36.8172&current_weather=true`)
+                .then(r => r.json())
+                .then(data => {
+                    const w = data.current_weather;
+                    const icon = document.getElementById('weatherIcon');
+                    const code = w.weathercode;
+                    
+                    if (code === 0) icon.textContent = '☀️';
+                    else if (code === 1 || code === 2) icon.textContent = '🌤️';
+                    else if (code === 3) icon.textContent = '☁️';
+                    else if (code >= 45 && code <= 48) icon.textContent = '🌫️';
+                    else if (code >= 51 && code <= 67) icon.textContent = '🌧️';
+                    else if (code >= 71 && code <= 77) icon.textContent = '❄️';
+                    else if (code >= 80 && code <= 86) icon.textContent = '🌦️';
+                    else if (code >= 95 && code <= 99) icon.textContent = '⛈️';
+                    else icon.textContent = '🌤️';
+                    
+                    document.getElementById('cityName').textContent = city;
+                    document.getElementById('temp').textContent = w.temperature;
+                    document.getElementById('wind').textContent = w.windspeed;
+                    document.getElementById('weatherResult').classList.remove('hidden');
+                    document.getElementById('loading').classList.add('hidden');
+                })
+                .catch(e => {
+                    document.getElementById('errorMsg').textContent = "Failed to load weather";
+                    document.getElementById('errorMsg').classList.remove('hidden');
+                    document.getElementById('loading').classList.add('hidden');
+                });
+        }
+        
+        document.getElementById('cityInput').addEventListener('keypress', e => {
+            if (e.key === 'Enter') searchWeather();
+        });
+    </script>
+</body>
+</html>
